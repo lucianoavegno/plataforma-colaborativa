@@ -1,0 +1,86 @@
+codigo: cdi-caja-presupuesto
+titulo: Optimización de materiales
+area: calculo_dif_int
+subtema: Optimización con restricciones
+dificultad_declarada: 4
+enunciado_publico: Se quiere construir una caja rectangular **sin tapa** con base cuadrada.
+  El objetivo es maximizar su volumen agotando exactamente el presupuesto disponible.
+dato_a: El material de la base cuesta \$3 por metro cuadrado y el de las cuatro caras laterales
+  cuesta \$2 por metro cuadrado.
+dato_b: El presupuesto total disponible es de exactamente \$1200.
+respuesta_canonica: 2000*sqrt(3)/3
+tipo_respuesta: expresion
+resolucion_latex: |-
+  Sea $x$ el lado de la base e $y$ la altura. El volumen a maximizar es
+
+  $$
+  V = x^2 y.
+  $$
+
+  **Costo (dato A).** Base: $3x^2$. Laterales: cuatro caras de área $xy$ a \$2, es decir $8xy$.
+
+  **Restricción (dato B).** El costo total agota el presupuesto:
+
+  $$
+  3x^2 + 8xy = 1200 \implies y = \frac{1200 - 3x^2}{8x}, \qquad 0 < x < 20.
+  $$
+
+  Sustituyendo en el volumen:
+
+  $$
+  V(x) = x^2\cdot\frac{1200-3x^2}{8x} = 150x - \frac{3}{8}x^3.
+  $$
+
+  Derivando e igualando a cero:
+
+  $$
+  V'(x) = 150 - \frac{9}{8}x^2 = 0 \implies x^2 = \frac{400}{3} \implies x = \frac{20}{\sqrt3}.
+  $$
+
+  Como $V''(x) = -\frac{9}{4}x < 0$ en el dominio, es un máximo.
+
+  La altura correspondiente:
+
+  $$
+  y = \frac{1200 - 3\cdot\frac{400}{3}}{8\cdot\frac{20}{\sqrt3}} = \frac{800}{\frac{160}{\sqrt3}} = 5\sqrt3.
+  $$
+
+  Y el volumen máximo:
+
+  $$
+  V = \frac{400}{3}\cdot 5\sqrt3 = \frac{2000\sqrt3}{3} \approx 1154{,}7 \ \text{m}^3.
+  $$
+
+  Sin el dato B la restricción no queda determinada; sin el dato A no se sabe cómo se reparte el gasto entre base y laterales.
+estructura_solucion:
+  pasos:
+  - id: p0
+    enunciado: Volumen y superficie de la caja sin tapa con base cuadrada
+    lado: publico
+  - id: a1
+    enunciado: 'De los precios: expresión del costo total'
+    lado: a
+    depende_de:
+    - p0
+  - id: b1
+    enunciado: El presupuesto disponible
+    lado: b
+    depende_de:
+    - p0
+  - id: c1
+    enunciado: Igualar costo a presupuesto y despejar la altura
+    lado: conjunto
+    depende_de:
+    - a1
+    - b1
+  - id: c2
+    enunciado: Volumen como función de un solo lado
+    lado: conjunto
+    depende_de:
+    - c1
+  - id: c3
+    enunciado: Anular la derivada y verificar que es máximo
+    lado: conjunto
+    depende_de:
+    - c2
+  paso_final: c3

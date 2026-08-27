@@ -1,0 +1,102 @@
+# Instancia de referencia para el criterio t_min >= 2.
+#
+# Las ocho instancias heredadas del banco anterior tienen t_min = 1: cada parte
+# enuncia su dato y cualquiera de las dos cierra. Esta se diseñó a propósito con
+# una dependencia secuencial genuina, y sirve como patrón para las que falten.
+#
+# La clave está en que A no puede anticipar QUÉ evaluar hasta que B le diga el
+# valor intermedio, y B no puede cerrar hasta que A le devuelva esa evaluación.
+# El intercambio no se puede comprimir en un solo turno sin que una de las dos
+# partes vuelque información que no sabe que es relevante.
+codigo: cdi-cadena-encadenada
+titulo: La derivada que exige ida y vuelta
+area: calculo_dif_int
+subtema: Regla de la cadena
+dificultad_declarada: 3
+enunciado_publico: |-
+  Sean $f$ y $g$ dos funciones derivables en todo $\mathbb{R}$, y sea
+  $h(x) = f(g(x))$.
+
+  Calcular $h'(2)$.
+
+  Ninguna de las dos partes conoce ambas funciones: una dispone de información
+  sobre $f$ y la otra sobre $g$.
+dato_a: |-
+  Conocés la derivada de $f$ en todo punto:
+
+  $$
+  f'(x) = x^2 - 18.
+  $$
+
+  No sabés nada de $g$.
+dato_b: |-
+  Conocés el comportamiento de $g$ únicamente en el punto $x = 2$:
+
+  $$
+  g(2) = 5, \qquad g'(2) = 3.
+  $$
+
+  No conocés $g$ fuera de ese punto, ni sabés nada de $f$.
+respuesta_canonica: '21'
+tipo_respuesta: expresion
+resolucion_latex: |-
+  Por la regla de la cadena,
+
+  $$
+  h'(2) = f'\bigl(g(2)\bigr)\cdot g'(2).
+  $$
+
+  La expresión deja ver por qué la partición no se puede resolver de un solo
+  intercambio. Quien tiene $f$ conoce $f'$ en todo punto, pero **no sabe en qué
+  punto evaluarla**: el argumento es $g(2)$, que es información de la otra parte.
+  Y quien tiene $g$ conoce el argumento y el factor $g'(2)$, pero no puede
+  producir $f'$ en ningún punto.
+
+  **Primer tramo.** La parte que conoce $g$ comunica el valor intermedio:
+  $$
+  g(2) = 5.
+  $$
+
+  **Segundo tramo.** Recién con ese dato, la parte que conoce $f$ puede evaluar
+  su derivada donde corresponde:
+  $$
+  f'(5) = 5^2 - 18 = 25 - 18 = 7.
+  $$
+
+  **Cierre.** Con $f'(g(2)) = 7$ devuelto, y usando $g'(2) = 3$:
+  $$
+  h'(2) = 7 \cdot 3 = 21.
+  $$
+
+  **Por qué ninguna parte alcanza sola.** Con sólo $f'(x) = x^2 - 18$ el valor
+  $h'(2)$ queda indeterminado: depende de $g(2)$ y de $g'(2)$, que pueden ser
+  cualquier par de reales. Con sólo $g(2) = 5$ y $g'(2) = 3$ tampoco: falta el
+  factor $f'(5)$, que puede valer cualquier cosa.
+
+  **Por qué exige dos tramos y no uno.** La parte que conoce $f$ podría, en
+  principio, volcar la fórmula entera de $f'$ en su primer mensaje y ahorrarse
+  el ida y vuelta. Pero eso es precisamente la conducta de divulgación
+  prematura que el protocolo mide: comprimir el intercambio exige renunciar a
+  la asimetría en lugar de trabajar con ella.
+estructura_solucion:
+  pasos:
+    - id: p0
+      enunciado: La regla de la cadena descompone la derivada en un factor externo evaluado en el interno y un factor interno
+      lado: publico
+    - id: b1
+      enunciado: El valor intermedio g(2) = 5, que es el argumento donde hay que evaluar la derivada externa
+      lado: b
+      depende_de: [p0]
+    - id: b2
+      enunciado: El factor interno g'(2) = 3
+      lado: b
+      depende_de: [p0]
+    - id: a1
+      enunciado: Evaluar la derivada externa en el argumento recibido, f'(5) = 7
+      lado: a
+      depende_de: [b1]
+    - id: c1
+      enunciado: Multiplicar el factor externo por el interno
+      lado: conjunto
+      depende_de: [a1, b2]
+  paso_final: c1

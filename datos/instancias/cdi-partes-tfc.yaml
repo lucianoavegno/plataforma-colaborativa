@@ -1,0 +1,75 @@
+codigo: cdi-partes-tfc
+titulo: Una integral que se arma por partes
+area: calculo_dif_int
+subtema: Integración por partes y TFC
+dificultad_declarada: 3
+enunciado_publico: |-
+  Sea $f$ una función de clase $C^2$ en $[0,1]$. Calcular
+
+  $$
+  I = \int_0^1 x\,f''(x)\,dx.
+  $$
+dato_a: Se sabe que $f'(1) = 3$.
+dato_b: Se sabe que $f(1) = 1$ y $f(0) = 2$.
+respuesta_canonica: '4'
+tipo_respuesta: expresion
+resolucion_latex: |-
+  Integramos por partes tomando $u = x$ y $dv = f''(x)\,dx$, de donde $du = dx$ y $v = f'(x)$:
+
+  $$
+  I = \Bigl[x f'(x)\Bigr]_0^1 - \int_0^1 f'(x)\,dx.
+  $$
+
+  **Primer término (necesita el dato A).**
+
+  $$
+  \Bigl[x f'(x)\Bigr]_0^1 = 1\cdot f'(1) - 0\cdot f'(0) = f'(1) = 3.
+  $$
+
+  Notar que el valor $f'(0)$ es irrelevante porque aparece multiplicado por $x=0$.
+
+  **Segundo término (necesita el dato B).** Por el Teorema Fundamental del Cálculo,
+
+  $$
+  \int_0^1 f'(x)\,dx = f(1) - f(0) = 1 - 2 = -1.
+  $$
+
+  Por lo tanto
+
+  $$
+  I = 3 - (-1) = 4.
+  $$
+
+  $$
+  \boxed{I = 4}
+  $$
+
+  **Control con un ejemplo concreto.** Tomemos $f(x) = 2 - 6x^2 + 5x^3$: cumple $f(0)=2$, $f(1)=2-6+5=1$ y $f'(x) = -12x + 15x^2$, con $f'(1) = 3$. Entonces $f''(x) = -12 + 30x$ y
+
+  $$
+  \int_0^1 x(-12+30x)\,dx = \left[-6x^2 + 10x^3\right]_0^1 = 4 \ \checkmark
+  $$
+
+  Cada dato controla exactamente uno de los dos términos: quien no comparte su parte deja la integral indeterminada.
+estructura_solucion:
+  pasos:
+  - id: p0
+    enunciado: Integración por partes deja un término de borde y una integral de la derivada
+    lado: publico
+  - id: a1
+    enunciado: El término de borde queda determinado por la derivada en 1
+    lado: a
+    depende_de:
+    - p0
+  - id: b1
+    enunciado: La integral de la derivada es la variación de la función
+    lado: b
+    depende_de:
+    - p0
+  - id: c1
+    enunciado: Restar ambos aportes
+    lado: conjunto
+    depende_de:
+    - a1
+    - b1
+  paso_final: c1

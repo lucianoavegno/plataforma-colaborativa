@@ -1,0 +1,91 @@
+codigo: ic-continuidad-parametros
+titulo: Continuidad con parámetros repartidos
+area: intro_calculo
+subtema: Límites y continuidad
+dificultad_declarada: 3
+enunciado_publico: |-
+  Sea
+
+  $$
+  f(x) = \begin{cases} \dfrac{x^2 + ax + b}{x-1} & x \neq 1 \\[2mm] k & x = 1 \end{cases}
+  $$
+
+  Hallar $a$, $b$ y $k$.
+dato_a: La función $f$ es continua en **todo** $\mathbb{R}$, en particular en $x=1$.
+dato_b: Se sabe que $f(3) = 7$.
+respuesta_canonica: (3, -4, 5)
+tipo_respuesta: tupla
+resolucion_latex: |-
+  **Del dato A.** Para que exista $\lim_{x\to 1} f(x)$ finito, el numerador debe anularse en $x=1$:
+
+  $$
+  1 + a + b = 0 \implies b = -1-a. \tag{1}
+  $$
+
+  Con eso el numerador factoriza:
+
+  $$
+  x^2 + ax - 1 - a = (x-1)\bigl(x + (1+a)\bigr),
+  $$
+
+  de modo que para $x \neq 1$
+
+  $$
+  f(x) = x + 1 + a, \qquad\text{y}\qquad k = \lim_{x\to1} f(x) = 2 + a. \tag{2}
+  $$
+
+  Falta un valor concreto: el dato A deja una familia entera de funciones lineales.
+
+  **Del dato B.** $f(3) = 7$ da otra ecuación. Sin la factorización de A, se escribe como
+
+  $$
+  \frac{9 + 3a + b}{2} = 7 \implies 3a + b = 5. \tag{3}
+  $$
+
+  **Combinando (1) y (3):**
+
+  $$
+  3a + (-1-a) = 5 \implies 2a = 6 \implies a = 3, \quad b = -4.
+  $$
+
+  Y por (2), $k = 2 + 3 = 5$.
+
+  $$
+  \boxed{a = 3,\quad b = -4,\quad k = 5}
+  $$
+
+  **Verificación:** $f(x) = \dfrac{x^2+3x-4}{x-1} = \dfrac{(x-1)(x+4)}{x-1} = x+4$ para $x\neq1$; en efecto $f(3) = 7$ y $\lim_{x\to1} f(x) = 5 = k$.
+
+  Cada parte aporta una ecuación de un sistema de dos incógnitas: ninguna cierra sola.
+estructura_solucion:
+  pasos:
+  - id: p0
+    enunciado: Para que el cociente sea continuo, el numerador debe anularse en el punto
+    lado: publico
+  - id: a1
+    enunciado: 'De la continuidad: el numerador es divisible por el denominador'
+    lado: a
+    depende_de:
+    - p0
+  - id: a2
+    enunciado: La función coincide con una recta fuera del punto
+    lado: a
+    depende_de:
+    - a1
+  - id: b1
+    enunciado: El valor de la función en 3 es 7
+    lado: b
+    depende_de:
+    - p0
+  - id: c1
+    enunciado: Determinar la recta con el valor conocido
+    lado: conjunto
+    depende_de:
+    - a2
+    - b1
+  - id: c2
+    enunciado: Recuperar los parámetros y el valor en el punto de empalme
+    lado: conjunto
+    depende_de:
+    - c1
+  paso_final: c2

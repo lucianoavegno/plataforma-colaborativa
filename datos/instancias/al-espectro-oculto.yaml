@@ -1,0 +1,78 @@
+codigo: al-espectro-oculto
+titulo: El polinomio característico oculto
+area: algebra_lineal
+subtema: Valores propios y diagonalización
+dificultad_declarada: 4
+enunciado_publico: Sea $M$ una matriz real de $3 \times 3$ **diagonalizable**. Determinar
+  su polinomio característico $p(\lambda) = \det(\lambda I - M)$.
+dato_a: La traza de $M$ es $\operatorname{tr}(M) = 7$ y su determinante es $\det(M) = 12$.
+dato_b: La matriz $M$ tiene **exactamente dos** valores propios distintos, y uno de ellos
+  es $\lambda = 2$.
+respuesta_canonica: \lambda^3 - 7\lambda^2 + 16\lambda - 12
+tipo_respuesta: expresion
+resolucion_latex: |-
+  Sean $\lambda_1,\lambda_2,\lambda_3$ los valores propios de $M$ contados con multiplicidad.
+
+  Del **dato A**:
+
+  $$
+  \lambda_1+\lambda_2+\lambda_3 = 7, \qquad \lambda_1\lambda_2\lambda_3 = 12.
+  $$
+
+  Del **dato B**: hay exactamente dos valores propios distintos, o sea que uno se repite, y uno de ellos vale $2$. Quedan dos configuraciones posibles.
+
+  **Caso 1: los valores propios son $2, 2, x$.**
+
+  $$
+  4 + x = 7 \implies x = 3, \qquad \det = 2\cdot 2\cdot 3 = 12 \ \checkmark
+  $$
+
+  **Caso 2: los valores propios son $2, x, x$ con $x \neq 2$.**
+
+  $$
+  2 + 2x = 7 \implies x = \tfrac{5}{2}, \qquad \det = 2\cdot\left(\tfrac{5}{2}\right)^2 = \tfrac{25}{2} \neq 12 \ \times
+  $$
+
+  El segundo caso contradice el determinante, así que el espectro es $\{2,2,3\}$, con $\lambda = 2$ de multiplicidad algebraica $2$. Como $M$ es diagonalizable, su multiplicidad geométrica también es $2$.
+
+  Por lo tanto:
+
+  $$
+  p(\lambda) = (\lambda-2)^2(\lambda-3) = \lambda^3 - 7\lambda^2 + 16\lambda - 12.
+  $$
+
+  **Verificación:** suma de raíces $2+2+3=7=\operatorname{tr}(M)$; producto $2\cdot2\cdot3=12=\det(M)$.
+
+  Ninguno de los datos alcanza solo: con el dato A hay infinitas ternas de traza $7$ y producto $12$; con el dato B hay infinitas matrices con dos valores propios distintos y uno igual a $2$.
+estructura_solucion:
+  pasos:
+  - id: p0
+    enunciado: El polinomio mónico se escribe con las funciones simétricas del espectro
+    lado: publico
+  - id: a1
+    enunciado: 'De la traza y el determinante: suma 7 y producto 12'
+    lado: a
+    depende_de:
+    - p0
+  - id: b1
+    enunciado: Hay exactamente dos valores propios distintos y uno vale 2
+    lado: b
+    depende_de:
+    - p0
+  - id: c1
+    enunciado: Enumerar las dos configuraciones posibles del espectro
+    lado: conjunto
+    depende_de:
+    - a1
+    - b1
+  - id: c2
+    enunciado: Descartar la configuración incompatible con el determinante
+    lado: conjunto
+    depende_de:
+    - c1
+  - id: c3
+    enunciado: 'Espectro {2,2,3}: escribir el polinomio característico'
+    lado: conjunto
+    depende_de:
+    - c2
+  paso_final: c3

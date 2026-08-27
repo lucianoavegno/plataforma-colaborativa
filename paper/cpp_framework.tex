@@ -1,0 +1,936 @@
+%==============================================================================
+%  Compatibilidad entre modalidades de resolución colaborativa
+%  Borrador de trabajo. Compilar con: pdflatex cpp_framework.tex  (x2)
+%  Sin bibliografía por decisión del autor; ver \pendiente en §2.
+%==============================================================================
+\documentclass[11pt,a4paper]{article}
+
+%------------------------------- codificación --------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands,es-noquoting]{babel}
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}}
+
+%------------------------------- matemática ----------------------------------
+\usepackage{amsmath,amssymb,amsthm}
+
+%------------------------------- presentación --------------------------------
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage[hidelinks]{hyperref}
+\geometry{margin=2.6cm}
+
+%------------------------------- entornos ------------------------------------
+\theoremstyle{definition}
+\newtheorem{definicion}{Definición}[section]
+\newtheorem{supuesto}[definicion]{Supuesto}
+\newtheorem{requisito}[definicion]{Requisito}
+\theoremstyle{plain}
+\newtheorem{proposicion}[definicion]{Proposición}
+\newtheorem{corolario}[definicion]{Corolario}
+\theoremstyle{remark}
+\newtheorem{observacion}[definicion]{Observación}
+
+%------------------------------- macros --------------------------------------
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cl}{Cl}
+\DeclareMathOperator{\clip}{clip}
+\newcommand{\ind}[1]{\mathbf{1}\!\left[#1\right]}
+\newcommand{\solver}{\mathcal{S}}
+\newcommand{\Info}{\mathcal{I}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Esp}{\mathbb{E}}
+\newcommand{\modAA}{\textsc{aa}}
+\newcommand{\modHA}{\textsc{ha}}
+\newcommand{\pendiente}[1]{\textcolor{red}{\textbf{[pendiente:} #1\textbf{]}}}
+
+%------------------------------- portada -------------------------------------
+\title{\bf Compatibilidad entre modalidades de resolución colaborativa\\
+  con partición de información:\\
+  \large un marco de medición para el diálogo agente--agente\\
+  y el diálogo agente--estudiante}
+
+\author{Luciano Avegno Cepeda\\
+  \small [afiliación]\\
+  \small \texttt{lucianoavegno@gmail.com}}
+
+\date{Borrador de trabajo --- \today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Un problema con partición de información reparte entre dos participantes datos
+complementarios tales que ninguno alcanza la solución por separado. La misma
+instancia puede resolverse en dos modalidades: dos agentes artificiales
+dialogando entre sí, o un agente y un estudiante universitario. Este trabajo
+sostiene que ambas modalidades son objetos de estudio de pleno derecho y que la
+pregunta relevante no es cuál aproxima a cuál, sino \emph{en qué medida una misma
+instancia induce la misma estructura colaborativa bajo ambas}. Formalizamos esa
+noción como \emph{compatibilidad de modalidad} y la descomponemos en tres
+componentes separables por equiparación lineal: sesgo sistemático, distorsión de
+escala e incompatibilidad idiosincrásica. Antes de eso reformulamos la batería de
+indicadores de colaboratividad, sustituyendo las cantidades probabilísticas no
+observables del marco de partida por estimadores empíricos definidos respecto de
+un solver de referencia declarado; demostramos en particular que el balance de
+carga informativa admite, para dos participantes, una forma cerrada equivalente al
+valor de Shapley que sólo requiere cuatro proporciones binomiales y elimina la
+entropía condicional del marco. El diseño experimental propuesto es simétrico: un
+estudio agente--agente sobre el banco completo y un estudio agente--estudiante con
+un brazo extensivo, orientado a la equiparación, y un brazo intensivo,
+dimensionado para pruebas de equivalencia estadística. Derivamos la potencia
+requerida y mostramos que la equivalencia a nivel de ítem exige aproximadamente
+$69$ episodios por modalidad con un margen de media desviación estándar, lo que
+delimita con precisión qué afirmaciones el diseño puede sostener y cuáles no.
+
+\vspace{0.6em}
+\noindent\textbf{Palabras clave:} resolución colaborativa de problemas,
+información asimétrica, interdependencia epistémica, agentes conversacionales,
+pruebas de equivalencia, educación matemática.
+\end{abstract}
+
+%==============================================================================
+\section{Introducción}
+%==============================================================================
+
+Considérese un problema de matemática universitaria escrito de modo que su
+enunciado público sea insuficiente, y que la información faltante esté repartida
+en dos datos privados: uno en poder de cada participante. Ninguno puede resolverlo
+solo; juntos determinan la respuesta de forma única. La estructura obliga a
+comunicar, y al comunicar obliga a explicitar el propio razonamiento.
+
+Esa misma instancia admite al menos dos modalidades de resolución. En la primera,
+dos agentes artificiales reciben cada uno un dato y dialogan entre sí. En la
+segunda, un estudiante universitario recibe un dato y un agente artificial recibe
+el otro. Las dos producen transcripts, las dos terminan (o no) en una respuesta, y
+las dos son mensurables con el mismo instrumento.
+
+La tentación metodológica es tratar una como sustituto de la otra: usar el diálogo
+agente--agente, que es barato y paralelizable, para predecir lo que ocurriría con
+estudiantes, que es caro y lento. Esa formulación presupone que la modalidad
+humana es el criterio y la artificial su aproximación. Nosotros la rechazamos por
+dos razones. La primera es empírica: no hay motivo previo para creer que un
+sistema de lenguaje y un estudiante de segundo año exhiban la misma dinámica de
+negociación, y de hecho hay razones para esperar que no --- un modelo sin costo
+de escritura ni pudor por parecer ignorante tiene incentivos comunicativos
+distintos a los de una persona. La segunda es conceptual: reducir una modalidad a
+estimador de la otra impide preguntarse en qué difieren, que es donde está el
+contenido interesante.
+
+Proponemos entonces una formulación simétrica. Sea $\mathcal{P}$ una instancia y
+sea $m$ la modalidad. Medimos el mismo perfil de indicadores bajo ambas y
+estudiamos el mapa que las vincula. La pregunta central es:
+
+\begin{quote}
+\emph{¿En qué medida una misma instancia con partición de información induce la
+misma estructura colaborativa cuando el interlocutor es un agente artificial y
+cuando es un estudiante universitario, y cómo se descompone la diferencia cuando
+existe?}
+\end{quote}
+
+Llamamos a esa propiedad \textbf{compatibilidad de modalidad}. No es una
+pregunta binaria: una instancia puede ser compatible en la calidad del proceso e
+incompatible en la eficiencia, o preservar el ordenamiento relativo entre
+problemas sin preservar los niveles absolutos. El marco que sigue está construido
+para distinguir esos casos en lugar de promediarlos.
+
+\paragraph{Organización y contribuciones.}
+La §\ref{sec:antecedentes} sitúa el trabajo. La §\ref{sec:marco} reformula la
+batería de indicadores de modo que sea empíricamente estimable, con dos resultados
+propios: la normalización de la interdependencia epistémica, que separa
+dificultad de colaboratividad (Observación~\ref{obs:normalizacion}), y la forma
+cerrada del balance de carga (Proposición~\ref{prop:ibc}), que elimina la entropía
+del marco. La §\ref{sec:compat} construye la noción de compatibilidad, su
+descomposición por equiparación lineal (Proposición~\ref{prop:descomp}) y el
+límite de resolución del ordenamiento (Proposición~\ref{prop:resolucion}). La
+§\ref{sec:diseno} especifica un diseño simétrico con su potencia. Las
+§§\ref{sec:amenazas}--\ref{sec:etica} tratan validez y ética, y la
+§\ref{sec:implementacion} la instrumentación.
+
+%==============================================================================
+\section{Antecedentes}\label{sec:antecedentes}
+%==============================================================================
+
+\pendiente{esta sección se redacta sin referencias por decisión de etapa. Las
+atribuciones deben incorporarse antes de cualquier circulación externa. Los cuatro
+cuerpos de literatura que corresponde acreditar son: (i) el paradigma de perfil
+oculto en psicología social, que introduce la estructura de información no
+compartida y documenta el fracaso sistemático de los grupos en ponerla en común;
+(ii) el marco de dominio de evaluación internacional de resolución colaborativa,
+del que se toma la matriz de doce celdas; (iii) los estudios de validación que
+compararon compañeros humanos contra agentes guionados en evaluación educativa;
+(iv) el trabajo reciente sobre agentes de lenguaje bajo asimetría de información y
+sobre el uso de modelos como jueces automáticos.}
+
+Tres observaciones de posicionamiento, independientes de la acreditación
+bibliográfica, delimitan el aporte.
+
+En primer lugar, la estructura de información repartida no es nueva; lo nuevo es
+el signo con que se la usa. La tradición que la introdujo la empleaba para
+documentar un fracaso: los grupos tienden a discutir lo que ya comparten e ignorar
+lo que sólo uno sabe. En diseño instruccional se la emplea con el signo opuesto,
+para \emph{forzar} la puesta en común. La diferencia importa porque los
+indicadores heredados de aquella tradición están calibrados para detectar la
+ausencia de intercambio, no su calidad.
+
+En segundo lugar, la sustitución de compañeros humanos por agentes en evaluación
+educativa ya se ensayó con agentes guionados por reglas, cuyo comportamiento es
+por construcción estable y auditable. Un agente de lenguaje no ofrece ninguna de
+las dos garantías: su conducta varía entre ejecuciones y no es inspeccionable. Los
+resultados de aquella línea no se transfieren, y es precisamente por eso que la
+compatibilidad debe volver a establecerse empíricamente.
+
+En tercer lugar, el marco de partida de este trabajo --- un conjunto de medidores
+de interdependencia epistémica y profundidad colaborativa --- fue formulado en
+términos probabilísticos y de teoría de la información sin especificar el espacio
+de probabilidad ni el estimador. La §\ref{sec:marco} lo reconstruye conservando la
+intuición y reemplazando las definiciones no operacionales.
+
+%==============================================================================
+\section{Marco de medición}\label{sec:marco}
+%==============================================================================
+
+\subsection{Instancias con partición}
+
+\begin{definicion}[Instancia CPS]\label{def:instancia}
+Una \emph{instancia con partición de información} es una tupla
+$\mathcal{P}=(Q,d_A,d_B,a^\ast,\mathcal{A})$, donde $Q$ es el enunciado público,
+$d_A$ y $d_B$ son los datos privados, $\mathcal{A}$ el espacio de respuestas
+admisibles y $a^\ast\in\mathcal{A}$ la respuesta correcta, única. Para
+$S\subseteq D:=\{d_A,d_B\}$ escribimos $\Info(S):=Q\cup S$.
+\end{definicion}
+
+La unicidad de $a^\ast$ no es un detalle: sin ella la corrección no es verificable
+por máquina y toda la cadena de medición queda supeditada a juicio humano.
+
+\subsection{Solver de referencia}
+
+El indicador principal del marco de partida se apoya en una cantidad de la forma
+$P(\text{solución}\mid \Info)$. Para un problema con respuesta única esa
+probabilidad no está definida hasta que se especifica \emph{quién} intenta
+resolverlo. Lo hacemos explícito y, con ello, estimable.
+
+\begin{definicion}[Solver de referencia y función de competencia]\label{def:solver}
+Un \emph{solver de referencia} es un mapa estocástico
+$\solver:\Info\to\mathcal{A}$ especificado por completo: modelo, versión,
+temperatura, prompt y presupuesto de razonamiento. Su \emph{función de
+competencia} es el juego cooperativo $(D,v)$ dado por
+\[
+  v(S)\;:=\;\Pr\big[\solver(\Info(S))=a^\ast\big],
+  \qquad v:2^{D}\longrightarrow[0,1].
+\]
+\end{definicion}
+
+\begin{definicion}[Estimador]\label{def:estimador}
+Con $N$ ejecuciones independientes sobre $\Info(S)$,
+\[
+  \hat v(S)=\frac1N\sum_{j=1}^{N}\ind{\solver_j(\Info(S))=a^\ast},
+  \qquad N\hat v(S)\sim\mathrm{Bin}\big(N,v(S)\big),
+\]
+con intervalo de Wilson. La corrección se decide por equivalencia simbólica contra
+$a^\ast$; nunca por autorreporte del solver.
+\end{definicion}
+
+\begin{observacion}[Relatividad al solver]
+$v$ depende de $\solver$, igual que toda medida de dificultad depende de la
+población de resolutores sobre la que se calibra. Lo exigible no es eliminar esa
+dependencia sino declararla y acotarla, verificando la estabilidad del
+\emph{ordenamiento} de instancias entre solvers distintos (§\ref{sec:amenazas}).
+Cuando la modalidad involucra estudiantes, la función de competencia relevante es
+la de una población humana, $v^{H}$, que se estima en un piloto separado
+(§\ref{sec:piloto}).
+\end{observacion}
+
+\begin{supuesto}[Monotonía informacional]\label{sup:monotonia}
+$v(\emptyset)\le v(\{d_i\})\le v(D)$ para $i\in\{A,B\}$.
+\end{supuesto}
+
+El supuesto es normativo: información adicional no debería perjudicar. Los
+sistemas reales pueden violarlo por distracción. Las violaciones se reportan, no
+se descartan: son diagnóstico sobre la instancia o sobre el solver.
+
+\subsection{Perfil de diseño}
+
+Los indicadores de esta subsección dependen sólo de $\mathcal{P}$ y de $\solver$,
+no del transcript. Son, por construcción, independientes de la modalidad, y por
+eso constituyen la base común sobre la cual la comparación de §\ref{sec:compat}
+tiene sentido.
+
+\begin{definicion}[Ganancia alcanzable]
+$\Delta:=v(D)-v(\emptyset)$. La instancia es \emph{no degenerada} si $\Delta>0$.
+\end{definicion}
+
+\begin{definicion}[Interdependencia epistémica de diseño]\label{def:ie0}
+\[
+  IE_0\;:=\;1-\frac{\max_{i}\big[v(\{d_i\})-v(\emptyset)\big]}{\Delta}.
+\]
+\end{definicion}
+
+\begin{proposicion}\label{prop:ie}
+Bajo el Supuesto~\ref{sup:monotonia} y no degeneración:
+(i) $IE_0\in[0,1]$;
+(ii) $IE_0=1$ si y sólo si $v(\{d_A\})=v(\{d_B\})=v(\emptyset)$;
+(iii) $IE_0=0$ si y sólo si $\max_i v(\{d_i\})=v(D)$.
+\end{proposicion}
+
+\begin{proof}
+Por monotonía, $0\le v(\{d_i\})-v(\emptyset)\le\Delta$ para cada $i$; tomando
+máximo y dividiendo por $\Delta>0$, el sustraendo pertenece a $[0,1]$, lo que da
+(i). Los incisos (ii) y (iii) son los casos de igualdad en cada extremo.
+\end{proof}
+
+\begin{observacion}[La normalización no es cosmética]\label{obs:normalizacion}
+El indicador original, $1-\max_i P(\text{sol}\mid I_i)$, confunde
+\emph{dificultad} con \emph{interdependencia}: una instancia que nadie resuelve ni
+con ambos datos ($v(D)=v(\{d_i\})=0$) alcanza el valor máximo sin ser
+colaborativa, sólo por ser imposible. Normalizar por la ganancia alcanzable separa
+los dos constructos y deja la dificultad como indicador propio, $1-v(D)$, en lugar
+de contaminar al principal.
+\end{observacion}
+
+\paragraph{Balance de carga.}
+Una instancia puede exigir que ambos hablen y ser colaborativamente superficial si
+uno aporta casi todo el peso deductivo y el otro un dato trivial. El marco de
+partida captura esto con entropías condicionales, lo que introduce dos problemas:
+sobre un espacio de respuestas continuo la entropía diferencial depende de la
+escala y puede ser negativa, de modo que el índice no queda acotado; y no es
+estimable con el mismo experimento que $IE_0$. Ambos desaparecen al usar el valor
+de Shapley del juego $(D,v)$.
+
+\begin{definicion}[Contribución marginal]
+Para $|D|=2$,
+\[
+  \varphi_A=\tfrac12\big[v(\{d_A\})-v(\emptyset)\big]+\tfrac12\big[v(D)-v(\{d_B\})\big],
+\]
+y simétricamente $\varphi_B$.
+\end{definicion}
+
+\begin{proposicion}\label{prop:ibc}
+$\;$(i) $\varphi_A+\varphi_B=\Delta$; \quad
+(ii) $\varphi_A-\varphi_B=v(\{d_A\})-v(\{d_B\})$.
+\end{proposicion}
+
+\begin{proof}
+Sumando ambas expresiones,
+\[
+  \varphi_A+\varphi_B
+  =\tfrac12\big[v(\{d_A\})+v(\{d_B\})-2v(\emptyset)\big]
+  +\tfrac12\big[2v(D)-v(\{d_A\})-v(\{d_B\})\big]
+  =v(D)-v(\emptyset)=\Delta,
+\]
+que es (i). Restando,
+\[
+  \varphi_A-\varphi_B
+  =\tfrac12\big[v(\{d_A\})-v(\{d_B\})\big]+\tfrac12\big[v(\{d_A\})-v(\{d_B\})\big]
+  =v(\{d_A\})-v(\{d_B\}).\qedhere
+\]
+\end{proof}
+
+\begin{definicion}[Índice de balance de carga informativa]
+\[
+  IBC\;:=\;1-\frac{|\varphi_A-\varphi_B|}{\Delta}
+        \;=\;1-\frac{\big|v(\{d_A\})-v(\{d_B\})\big|}{v(D)-v(\emptyset)}.
+\]
+\end{definicion}
+
+\begin{corolario}
+Bajo el Supuesto~\ref{sup:monotonia} y no degeneración, $IBC\in[0,1]$; vale $1$ si
+y sólo si ambos datos producen idéntica ganancia individual, y $0$ si y sólo si
+uno concentra toda la ganancia alcanzable.
+\end{corolario}
+
+\begin{proof}
+Sin pérdida de generalidad $v(\{d_A\})\ge v(\{d_B\})$. Por monotonía
+$v(\{d_A\})\le v(D)$ y $v(\{d_B\})\ge v(\emptyset)$, de donde
+$0\le v(\{d_A\})-v(\{d_B\})\le v(D)-v(\emptyset)=\Delta$; dividiendo por $\Delta$
+se obtiene el rango, y los casos de igualdad dan las caracterizaciones.
+\end{proof}
+
+El inciso (ii) de la Proposición~\ref{prop:ibc} es el resultado operativamente
+útil: el $IBC$ se calcula con las mismas cuatro proporciones ya estimadas para
+$IE_0$, sin experimento adicional y sin entropías.
+
+\begin{observacion}[Más de dos participantes]
+Con $k$ agentes, $\varphi_i$ recupera la forma general de Shapley y el índice se
+generaliza como $IBC_k=1-(\max_i\varphi_i-\min_i\varphi_i)/\Delta$, o mediante el
+coeficiente de Gini de $(\varphi_1,\dots,\varphi_k)$ si interesa penalizar
+desbalances distribuidos y no sólo el rango.
+\end{observacion}
+
+\begin{proposicion}[Varianza por método delta]\label{prop:delta}
+Sea $g(v)=(v_A-v_B)/(v_D-v_\emptyset)$ con estimaciones independientes de tamaño
+$N$ por celda. Entonces
+\[
+  \Var(\hat g)\;\approx\;
+  \frac{v_A(1-v_A)+v_B(1-v_B)}{N\Delta^{2}}
+  +\frac{(v_A-v_B)^{2}\big[v_D(1-v_D)+v_\emptyset(1-v_\emptyset)\big]}{N\Delta^{4}}.
+\]
+\end{proposicion}
+
+\begin{proof}
+Las derivadas parciales de $g$ son $1/\Delta$, $-1/\Delta$,
+$-(v_A-v_B)/\Delta^{2}$ y $(v_A-v_B)/\Delta^{2}$ respecto de $v_A$, $v_B$, $v_D$ y
+$v_\emptyset$. El método delta con $\Var(\hat v_S)=v_S(1-v_S)/N$ e independencia
+entre celdas da la expresión.
+\end{proof}
+
+El término en $\Delta^{-4}$ advierte que la estimación se degrada cuando la
+ganancia alcanzable es pequeña; con $\hat\Delta$ chico se usan intervalos
+bootstrap BCa en lugar de la aproximación normal.
+
+\paragraph{Tamaño muestral por celda.} Verificar la insuficiencia individual
+($v(\{d_i\})\le\delta_0$) es un problema de cota superior con cero eventos. Si
+ninguna de $N$ ejecuciones acierta, la cota unilateral exacta al $95\%$ es
+$1-0.05^{1/N}$, esto es $0.095$ para $N=30$ y $0.049$ para $N=60$. Fijamos $N=30$
+por celda, elevado a $60$ en instancias limítrofes.
+
+\paragraph{Estructura de la solución.}
+La resolución canónica se representa como un DAG $G=(V,E)$ de pasos deductivos;
+$\Cl(S)\subseteq V$ denota los nodos derivables a partir de $\Info(S)$. Entonces
+\[
+  MEE:=\frac{\big|V\setminus(\Cl(\{d_A\})\cup\Cl(\{d_B\}))\big|}
+            {\big|V\setminus\Cl(\emptyset)\big|}\in[0,1]
+\]
+mide la fracción de pasos no triviales que sólo existen como producto de la
+deducción conjunta. Asignando a cada nodo el lado $\lambda(\nu)\in\{A,B,AB\}$ del
+dato privado mínimo que su derivación requiere,
+\[
+  t_{\min}:=\max_{\pi\in\mathrm{caminos}(G)}
+  \#\big\{j:\lambda(\pi_j)\neq\lambda(\pi_{j+1}),\;
+  \lambda(\pi_j),\lambda(\pi_{j+1})\in\{A,B\}\big\}
+\]
+cuenta el máximo de alternancias de lado a lo largo de un camino dirigido, y es
+una cota inferior estructural sobre el número de intercambios necesarios: cada
+alternancia en la cadena de dependencias exige al menos una transmisión.
+
+\begin{definicion}[Perfil de diseño]\label{def:phi}
+\[
+  \Phi(\mathcal{P})=\big(IE_0,\;IBC,\;MEE,\;t_{\min},\;1-v(D)\big).
+\]
+\end{definicion}
+
+\subsection{Perfil de episodio}
+
+Los indicadores que siguen se computan sobre un transcript y por lo tanto
+\emph{sí} dependen de la modalidad. Son el objeto de la comparación.
+
+Sea $m_{1:t}$ el transcript hasta la ronda $t$ e $I_{i,t}=Q\cup\{d_i\}\cup m_{1:t}$.
+Con $v^{(i)}_t=\Pr[\solver(I_{i,t})=a^\ast]$,
+\[
+  IE_t=\clip_{[0,1]}\!\left(1-\frac{\max_i v^{(i)}_t-v(\emptyset)}{\Delta}\right),
+  \qquad
+  t_{\mathrm{crit}}=\max\{t\le T: IE_t\ge \tfrac12\},
+\]
+con la convención $\max\emptyset=0$. Una instancia cuya partición se disuelve en el
+primer intercambio tiene $t_{\mathrm{crit}}=0$.
+
+\begin{definicion}[Calidad del proceso]
+Sobre las doce celdas del marco de dominio, con $q_k\in\{0,1,2,3\}$ en escala
+ordinal desde ausencia de interacción hasta emergencia de entendimiento conjunto,
+$CQI:=\tfrac1{36}\sum_{k=1}^{12}q_k\in[0,1]$.
+\end{definicion}
+
+\begin{definicion}[Eficiencia y divulgación prematura]
+$E:=t_{\min}/t_{\mathrm{obs}}\in(0,1]$, con $t_{\mathrm{obs}}$ las rondas usadas
+hasta la primera respuesta correcta. Con
+$T_i:=\min\{t: d_i \text{ es recuperable en su totalidad de } m_{1:t}\}$, el
+índice de divulgación prematura es $PD_i:=\ind{T_i=1}$.
+\end{definicion}
+
+Sostenemos que la divulgación prematura debe medirse y no prohibirse por prompt.
+Una restricción explícita sustituye el fenómeno de interés --- el comportamiento
+comunicativo espontáneo del participante --- por otro --- su obediencia a la
+restricción --- y con ello destruye la comparabilidad entre modalidades, que es
+justamente el objeto del trabajo. La restricción se incorpora como condición
+experimental cruzada.
+
+\begin{definicion}[Perfil de episodio]\label{def:psi}
+\[
+  \Psi(\omega)=\big(\underbrace{t_{\mathrm{crit}},\;CQI,\;E}_{\text{continuos}},\;
+  \underbrace{\ind{\text{correcto}},\;PD}_{\text{binarios}}\big)\in\Real^{J},\quad J=5.
+\]
+\end{definicion}
+
+\subsection{Requisitos de medición}
+
+\begin{requisito}[Corrección verificada]\label{req:correccion}
+$\ind{\text{correcto}}$ se determina por equivalencia simbólica de la respuesta
+final contra $a^\ast$, mediante un sistema de álgebra computacional con
+normalización previa. No se acepta en ningún caso la autodeclaración de resolución
+por parte del agente o del participante.
+\end{requisito}
+
+El Requisito~\ref{req:correccion} no es pedantería. Un marcador de resolución
+autodeclarado es falsificable por el propio sujeto medido y convierte la variable
+dependiente principal en una medida de disposición a declararse exitoso.
+
+\begin{requisito}[Codificación del proceso]\label{req:juez}
+$CQI$ se obtiene por codificación automática mediante modelos jueces, con:
+(a) al menos dos jueces de familias distintas, ninguno de la familia que generó
+los transcripts;
+(b) ceguera respecto de la modalidad, la condición y la identidad de la instancia;
+(c) orden de presentación aleatorizado;
+(d) acuerdo juez--humano reportado como $\alpha$ de Krippendorff ordinal sobre una
+submuestra estratificada del $20\%$ codificada por dos anotadores entrenados,
+con los umbrales convencionales $\alpha\ge0.80$ para conclusiones firmes y
+$0.667\le\alpha<0.80$ para conclusiones tentativas.
+\end{requisito}
+
+La ceguera respecto de la modalidad en (b) es crítica y no trivial de implementar:
+los transcripts humanos y artificiales difieren en superficie (ortografía,
+longitud, muletillas) de un modo que puede delatar la condición al juez. El
+protocolo incluye una normalización estilística previa y una prueba de
+desenmascaramiento en la que se pide al juez identificar la modalidad; si acierta
+por encima del azar, la ceguera falló y el resultado debe reportarse con esa
+salvedad.
+
+\subsection{Sobre los índices compuestos}\label{sec:compuesto}
+
+El marco de partida propone un rendimiento colaborativo de la forma
+$CY=0.35\,CDI+0.45\,\ind{\text{correcto}}+0.20\,\kappa$. Señalamos dos defectos.
+
+\begin{observacion}[Varianza intra-instancia nula]
+$CDI$ es, por definición, prescriptivo: función de $\mathcal{P}$ y no del episodio
+$\omega$. Luego
+$\Var_\omega(CY\mid\mathcal{P})=\Var_\omega(0.45\,\ind{\text{correcto}}+0.20\kappa\mid\mathcal{P})$:
+el término en $CDI$ no aporta varianza dentro de una instancia y opera sólo como
+desplazamiento entre instancias. Un índice de rendimiento a nivel de episodio no
+puede contener un término constante en el episodio.
+\end{observacion}
+
+\begin{observacion}[Escalarización con pérdida]
+Si calidad de proceso y exactitud son ortogonales --- como el propio marco de
+partida afirma --- una suma ponderada de pesos fijos las colapsa en un escalar no
+identificable: infinitos pares producen el mismo valor y la ortogonalidad
+garantiza que la pérdida no es recuperable. El parámetro $\kappa$, además, no está
+definido.
+\end{observacion}
+
+Por eso reportamos $\Phi$ y $\Psi$ como vectores. Cualquier compuesto es
+secundario y va acompañado de análisis de sensibilidad sobre sus pesos. Reportamos
+además la matriz de correlaciones de $\Phi$ y sus componentes principales: si la
+primera componente explica más del $80\%$ de la varianza, el marco tiene
+indicadores redundantes y debe reducirse.
+
+%==============================================================================
+\section{Compatibilidad entre modalidades}\label{sec:compat}
+%==============================================================================
+
+\subsection{La modalidad como factor}
+
+\begin{definicion}[Modalidad]
+$m\in\mathcal{M}=\{\modAA,\modHA\}$, donde \modAA{} designa el diálogo entre dos
+agentes artificiales y \modHA{} el diálogo entre un agente artificial y un
+estudiante. Un episodio bajo modalidad $m$ sobre la instancia $\mathcal{P}$ es una
+realización $\omega\sim\mathcal{D}_m(\mathcal{P})$, y
+\[
+  \mu_{m,j}(\mathcal{P}):=\Esp_{\omega\sim\mathcal{D}_m(\mathcal{P})}\big[\Psi_j(\omega)\big],
+  \qquad j=1,\dots,J.
+\]
+\end{definicion}
+
+Nótese que $\Phi(\mathcal{P})$ no lleva subíndice de modalidad: es la base común
+que hace comparables a $\mu_{\modAA}$ y $\mu_{\modHA}$. Sin un perfil de diseño
+independiente de la modalidad, cualquier diferencia observada sería atribuible a
+que se trata, en rigor, de dos instancias distintas.
+
+\subsection{Divergencia estandarizada}
+
+\begin{definicion}[Divergencia por componente]\label{def:divergencia}
+Para componentes continuos, sea $\bar\sigma_j$ la desviación estándar
+intra-celda agrupada sobre todo el banco y ambas modalidades. La \emph{divergencia
+estandarizada} de la instancia $\mathcal{P}$ en el componente $j$ es
+\[
+  d_j(\mathcal{P})\;:=\;\frac{\mu_{\modAA,j}(\mathcal{P})-\mu_{\modHA,j}(\mathcal{P})}{\bar\sigma_j}.
+\]
+Para componentes binarios se usa la diferencia de proporciones en la escala de
+probabilidad, $\pi_j(\mathcal{P}):=\mu_{\modAA,j}(\mathcal{P})-\mu_{\modHA,j}(\mathcal{P})$,
+con su propio margen de equivalencia.
+\end{definicion}
+
+Agrupar $\bar\sigma_j$ sobre el banco, y no dentro de cada instancia, es
+deliberado: vuelve $d_j$ comparable entre instancias y evita que una instancia con
+varianza interna pequeña produzca divergencias estandarizadas artificialmente
+grandes. La distinción entre componentes continuos y binarios tampoco es
+cosmética: una diferencia estandarizada sobre una variable de Bernoulli confunde
+el tamaño del efecto con la tasa base.
+
+\subsection{Compatibilidad absoluta y relativa}
+
+Dos instancias pueden diferir en niveles y coincidir en ordenamiento. Como son
+propiedades distintas y de utilidad distinta, las separamos.
+
+\begin{definicion}[Compatibilidad absoluta]\label{def:absoluta}
+Dado un margen $\delta>0$, la instancia $\mathcal{P}$ es
+\emph{$(j,\delta)$-compatible} si $|d_j(\mathcal{P})|\le\delta$. El
+\emph{índice de compatibilidad} de la instancia es la fracción de componentes
+declarados equivalentes,
+\[
+  C_\delta(\mathcal{P})=\frac1J\sum_{j=1}^{J}\ind{\mathcal{P}\text{ es }(j,\delta)\text{-compatible}}\in[0,1],
+\]
+y su \emph{divergencia máxima} es
+$\mathrm{Div}(\mathcal{P})=\max_j|d_j(\mathcal{P})|$.
+\end{definicion}
+
+\begin{definicion}[Compatibilidad relativa]\label{def:relativa}
+El banco es \emph{relativamente compatible} en el componente $j$ si el coeficiente
+de correlación de rangos de Spearman entre
+$\mu_{\modAA,j}(\cdot)$ y $\mu_{\modHA,j}(\cdot)$, calculado sobre las instancias
+del banco, supera un umbral $\rho_0$ fijado de antemano.
+\end{definicion}
+
+La compatibilidad relativa es la propiedad que interesa a quien construye un banco
+de problemas: basta con que las instancias se ordenen igual bajo ambas modalidades
+para poder seleccionarlas con la modalidad barata. La compatibilidad absoluta es
+la que interesa a quien quiere interpretar un valor. La primera no implica la
+segunda, y la segunda implica la primera sólo hasta la resolución que cuantifica
+el siguiente resultado.
+
+\begin{proposicion}[Resolución del ordenamiento]\label{prop:resolucion}
+Supóngase $|d_j(\mathcal{P})|\le\delta$ para toda instancia del banco. Entonces,
+para dos instancias $\mathcal{P},\mathcal{P}'$, el signo de
+$\mu_{\modAA,j}(\mathcal{P})-\mu_{\modAA,j}(\mathcal{P}')$ coincide con el de
+$\mu_{\modHA,j}(\mathcal{P})-\mu_{\modHA,j}(\mathcal{P}')$ siempre que
+\[
+  \frac{\big|\mu_{\modHA,j}(\mathcal{P})-\mu_{\modHA,j}(\mathcal{P}')\big|}{\bar\sigma_j}\;>\;2\delta .
+\]
+\end{proposicion}
+
+\begin{proof}
+Escribiendo $\mu_{\modAA,j}=\mu_{\modHA,j}+\bar\sigma_j d_j$,
+\[
+  \mu_{\modAA,j}(\mathcal{P})-\mu_{\modAA,j}(\mathcal{P}')
+  =\big[\mu_{\modHA,j}(\mathcal{P})-\mu_{\modHA,j}(\mathcal{P}')\big]
+  +\bar\sigma_j\big[d_j(\mathcal{P})-d_j(\mathcal{P}')\big].
+\]
+Por hipótesis $|d_j(\mathcal{P})-d_j(\mathcal{P}')|\le 2\delta$, de modo que el
+segundo sumando está acotado en valor absoluto por $2\delta\bar\sigma_j$. Si el
+primero excede esa cota, domina y fija el signo.
+\end{proof}
+
+\begin{observacion}[Cuántos estratos son distinguibles]\label{obs:estratos}
+Si la dispersión entre instancias de $\mu_{\modHA,j}$ es $s_j$ en unidades de
+$\bar\sigma_j$, la Proposición~\ref{prop:resolucion} implica que el número de
+estratos que la modalidad barata puede distinguir con confianza es del orden de
+$s_j/(2\delta)$. Con una dispersión típica de $1.5\,\bar\sigma_j$ y un margen
+$\delta=0.5$, eso da apenas $1.5$: el cribado permite separar dos grupos, no
+producir un ranking fino. Es una limitación estructural del procedimiento y debe
+declararse como tal en lugar de descubrirse al interpretar los resultados.
+\end{observacion}
+
+\subsection{Descomposición por equiparación lineal}
+
+Cuando hay incompatibilidad conviene saber de qué tipo es. Postulamos, para cada
+componente $j$, el modelo de equiparación sobre las instancias del banco
+\begin{equation}\label{eq:equiparacion}
+  \mu_{\modAA,j}(\mathcal{P})=a_j+b_j\,\mu_{\modHA,j}(\mathcal{P})+e_j(\mathcal{P}),
+  \qquad \Esp[e_j]=0,\quad e_j\perp\mu_{\modHA,j}.
+\end{equation}
+
+\begin{proposicion}[Descomposición de la divergencia esperada]\label{prop:descomp}
+Bajo \eqref{eq:equiparacion}, escribiendo $X=\mu_{\modHA,j}(\mathcal{P})$ con
+$\mathcal{P}$ recorriendo el banco,
+\[
+  \Esp\big[(\mu_{\modAA,j}-\mu_{\modHA,j})^{2}\big]
+  =\underbrace{\big(a_j+(b_j-1)\Esp[X]\big)^{2}}_{\text{sesgo sistemático}}
+  +\underbrace{(b_j-1)^{2}\Var(X)}_{\text{distorsión de escala}}
+  +\underbrace{\Var(e_j)}_{\text{idiosincrásico}} .
+\]
+\end{proposicion}
+
+\begin{proof}
+Sea $Y=\mu_{\modAA,j}$. De \eqref{eq:equiparacion},
+$Y-X=a_j+(b_j-1)X+e_j$, luego
+$\Esp[Y-X]=a_j+(b_j-1)\Esp[X]$ y, por independencia de $e_j$ y $X$,
+$\Var(Y-X)=(b_j-1)^{2}\Var(X)+\Var(e_j)$. La identidad
+$\Esp[(Y-X)^2]=\Var(Y-X)+(\Esp[Y-X])^{2}$ concluye.
+\end{proof}
+
+La lectura de los tres términos es directa y sugiere remedios distintos. Un
+\emph{sesgo sistemático} significa que una modalidad es uniformemente más (o
+menos) colaborativa que la otra; es corregible por desplazamiento y no invalida el
+uso comparativo. Una \emph{distorsión de escala} con $b_j<1$ indica compresión de
+rango: la modalidad artificial discrimina menos entre instancias de lo que
+discriminan los estudiantes, lo que degrada el ordenamiento sin desplazarlo. El
+término \emph{idiosincrásico} es el único irreducible: mide en qué medida la
+divergencia depende de la instancia particular y no de una transformación global.
+
+\begin{observacion}[Techo de confiabilidad]
+$\Var(e_j)$ no puede caer por debajo de la varianza de error de medición de ambos
+lados. Reportamos el cociente entre $\Var(e_j)$ y esa varianza de error estimada;
+si es cercano a uno, toda la incompatibilidad idiosincrásica observada es ruido y
+no señal.
+\end{observacion}
+
+\subsection{Inferencia: equivalencia, no ausencia de diferencia}
+
+\begin{observacion}[El error inferencial que este diseño evita]\label{obs:tost}
+No rechazar la hipótesis nula de diferencia \emph{no} es evidencia de
+equivalencia: un estudio con poca potencia produce sistemáticamente ese resultado.
+Afirmar compatibilidad exige invertir la carga de la prueba.
+\end{observacion}
+
+\begin{definicion}[Prueba de equivalencia]\label{def:tost}
+Fijado el margen $\delta$, se declara $(j,\delta)$-compatibilidad si el intervalo
+de confianza al $(1-2\alpha)$ para $d_j(\mathcal{P})$ está contenido en
+$[-\delta,\delta]$; equivalentemente, si ambas hipótesis unilaterales
+$H_{01}: d_j\le-\delta$ y $H_{02}: d_j\ge\delta$ se rechazan al nivel $\alpha$.
+\end{definicion}
+
+\begin{proposicion}[Tamaño muestral para equivalencia]\label{prop:potencia}
+Para dos grupos independientes de igual tamaño, con divergencia verdadera nula,
+nivel $\alpha$ y potencia $1-\beta$, el número de episodios por modalidad es
+aproximadamente
+\[
+  n\;\approx\;\frac{2\big(z_{1-\alpha}+z_{1-\beta/2}\big)^{2}}{\delta^{2}} .
+\]
+\end{proposicion}
+
+Con $\alpha=0.05$ y potencia $0.80$ la fórmula da los valores de la
+Tabla~\ref{tab:potencia}, confirmados por simulación. Son números grandes, y esa
+es exactamente la información que el diseño necesita antes de recolectar: la
+equivalencia a nivel de instancia individual es cara, y por lo tanto sólo puede
+sostenerse sobre un subconjunto reducido de instancias.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{@{}cccccc@{}}
+\toprule
+Margen $\delta$ & $0.3$ & $0.4$ & $0.5$ & $0.6$ & $0.8$ \\
+\midrule
+Episodios por modalidad & $191$ & $108$ & $69$ & $48$ & $27$ \\
+\bottomrule
+\end{tabular}
+\caption{Episodios necesarios por modalidad para declarar equivalencia a nivel de
+instancia ($\alpha=0.05$, potencia $0.80$, divergencia verdadera nula).}
+\label{tab:potencia}
+\end{table}
+
+%==============================================================================
+\section{Diseño experimental}\label{sec:diseno}
+%==============================================================================
+
+El diseño es deliberadamente simétrico en su instrumento --- ambas modalidades se
+miden con el mismo $\Psi$ y el mismo protocolo de codificación --- y asimétrico en
+su volumen, porque el costo por episodio difiere en tres órdenes de magnitud.
+
+\subsection{Materiales}
+
+$50$ instancias distribuidas sobre seis áreas de matemática universitaria:
+álgebra lineal, introducción al álgebra, introducción al cálculo, cálculo
+diferencial e integral, cálculo en varias variables y ecuaciones diferenciales
+ordinarias. Cada una con enunciado público, partición $(d_A,d_B)$, respuesta
+canónica estructurada $a^\ast$ y DAG de solución anotado, del que se derivan
+$MEE$ y $t_{\min}$.
+
+\subsection{Estudio 1: modalidad agente--agente}
+
+Diseño factorial intra-instancia $2\times2$: familia de modelo $\{M_1,M_2\}$
+cruzada con restricción de divulgación $\{$libre, restringida$\}$, con $R=8$
+réplicas por celda. Total: $50\times4\times8=1600$ episodios.
+
+\subsection{Estudio 2: modalidad agente--estudiante}\label{sec:estudio2}
+
+Dos brazos, porque las dos formas de compatibilidad tienen requerimientos
+muestrales incompatibles entre sí.
+
+\paragraph{Brazo extensivo (equiparación).} $25$ instancias, submuestreadas de
+forma estratificada por terciles de $IE_0$ y $t_{\min}$ para cubrir el rango del
+banco y no sólo su extremo favorable. Aproximadamente $8$ episodios por instancia,
+esto es $200$ episodios. La unidad de análisis es la instancia, $n=25$, y el
+objetivo es estimar $a_j$, $b_j$ y $\Var(e_j)$ de \eqref{eq:equiparacion} y la
+correlación de rangos de la Definición~\ref{def:relativa}.
+
+\paragraph{Brazo intensivo (equivalencia).} Un subconjunto de $6$ instancias con
+$n=48$ episodios cada una, dimensionado según la Tabla~\ref{tab:potencia} para un
+margen $\delta=0.6$: $288$ episodios. Es el único brazo que autoriza afirmaciones
+de equivalencia a nivel de instancia, y sólo con ese margen.
+
+\paragraph{Participantes.} Estudiantes de grado con la materia correspondiente
+aprobada o en curso, cada uno en $3$ episodios, con orden contrabalanceado por
+cuadrado latino. El total de $488$ episodios requiere del orden de $163$
+participaciones.
+
+\paragraph{Contrabalanceo de rol.} En cada instancia, la mitad de los episodios
+asigna $d_A$ al estudiante y la otra mitad $d_B$. Sin esto, la comparación entre
+modalidades confunde el efecto de la modalidad con el del rol, dado que en
+\modAA{} ambos roles son artificiales mientras que en \modHA{} el humano ocuparía
+siempre el mismo. Es un requisito, no un refinamiento.
+
+\subsection{Piloto de insuficiencia individual humana}\label{sec:piloto}
+
+Toda la construcción presupone que ningún dato alcanza por separado. Esa premisa
+se verifica para el solver artificial por la Definición~\ref{def:estimador}, pero
+no para estudiantes. Un piloto independiente con $12$ instancias y estudiantes que
+reciben un solo dato estima $v^{H}(\{d_i\})$ y verifica que la insuficiencia
+individual valga también para la población humana. Si no valiera, la instancia no
+es colaborativa para estudiantes por más que lo sea para el solver, y la
+comparación de modalidades pierde sentido para esa instancia.
+
+\subsection{Hipótesis}
+
+\begin{description}
+\item[H1 (compatibilidad relativa).] Para $CQI$ y $t_{\mathrm{crit}}$, la
+  correlación de rangos entre modalidades sobre las $25$ instancias del brazo
+  extensivo es positiva y supera $\rho_0=0.5$.
+\item[H2 (estructura de la divergencia).] En la descomposición de la
+  Proposición~\ref{prop:descomp}, el término idiosincrásico no domina: representa
+  menos de la mitad de la divergencia cuadrática esperada, de modo que la
+  incompatibilidad es mayoritariamente corregible por transformación afín.
+\item[H3 (compatibilidad absoluta acotada).] En el brazo intensivo, al menos tres
+  de los cinco componentes de $\Psi$ resultan $(j,0.6)$-compatibles por la
+  Definición~\ref{def:tost}.
+\item[H4 (divergencia en divulgación).] La tasa de divulgación prematura
+  $\Esp[PD]$ es estrictamente mayor en \modAA{} que en \modHA{}. Hipótesis
+  direccional: predice que los agentes colapsan la partición antes que los
+  estudiantes.
+\item[H5 (compresión de rango).] $b_j<1$ para $CQI$: la modalidad artificial
+  discrimina entre instancias menos que la humana.
+\end{description}
+
+H4 y H5 son las hipótesis que pueden falsar el programa, y están formuladas para
+que su confirmación sea informativa incluso si H1 falla. Si los agentes vuelcan su
+dato de entrada mientras los estudiantes negocian, las dos modalidades no miden lo
+mismo, y saber \emph{eso} --- con un tamaño de efecto y no como impresión --- es el
+resultado que ordena el uso de agentes en investigación educativa.
+
+\subsection{Análisis}
+
+El modelo principal del Estudio 2 es de efectos aleatorios cruzados,
+\[
+  \Psi_{j,sp}=\beta_{0}+\boldsymbol{\beta}^{\!\top}\Phi_p+u_s+w_p+\varepsilon_{sp},
+  \qquad u_s\sim\mathcal{N}(0,\sigma_s^{2}),\;\; w_p\sim\mathcal{N}(0,\sigma_p^{2}),
+\]
+con estudiantes ($s$) e instancias ($p$) como factores aleatorios cruzados. Los
+contrastes entre modalidades se estiman sobre las medias por instancia, ajustadas
+por el modelo.
+
+\paragraph{Confiabilidad de las medias por instancia.} Con $k$ episodios por
+instancia, la confiabilidad de la media sigue la relación de Spearman--Brown
+$\rho_k=k\,\mathrm{ICC}/[1+(k-1)\mathrm{ICC}]$. En el brazo extensivo, con
+$k=8$ e $\mathrm{ICC}=0.30$, resulta $\rho_k\approx0.77$, suficiente para
+correlacionar medias pero no para interpretar valores individuales.
+
+\paragraph{Corrección por atenuación.} Ambos términos de H1 son medidas con error,
+de modo que la correlación observada subestima la verdadera. Reportamos también
+$\rho_{\text{corr}}=\rho_{\text{obs}}/\sqrt{\rho_{\modAA}\rho_{\modHA}}$, con
+$\rho_{\bullet}$ las confiabilidades estimadas de cada lado, y explicitamos ambas
+cifras.
+
+%==============================================================================
+\section{Amenazas a la validez}\label{sec:amenazas}
+%==============================================================================
+
+\paragraph{Contaminación del corpus de entrenamiento.} Si una instancia aparece en
+los datos de preentrenamiento, $v(\{d_i\})$ se infla y $IE_0$ se subestima.
+Mitigaciones: instancias de autoría propia; prueba canario que perturba constantes
+numéricas y verifica que $\hat v$ se mueva como predice la estructura; y reporte
+de $\hat v(\emptyset)$, cuyo exceso sobre el azar es señal directa de
+contaminación o de un enunciado que filtra la respuesta.
+
+\paragraph{Relatividad al solver.} Todo $\Phi$ depende de $\solver$. Se replica
+con al menos dos solvers de familias distintas y se reporta la concordancia de
+ordenamientos por $\tau$ de Kendall. Si es baja, los indicadores describen al
+modelo y no a la instancia, y el programa debe reformularse.
+
+\paragraph{Confusión modalidad $\times$ rol.} Tratada por contrabalanceo en
+§\ref{sec:estudio2}.
+
+\paragraph{Fallo de ceguera del juez.} Tratado por normalización estilística y
+prueba de desenmascaramiento en el Requisito~\ref{req:juez}.
+
+\paragraph{Sesgo de verbosidad.} Se reporta la correlación entre longitud del
+transcript y $CQI$ asignado. Dado que las modalidades difieren sistemáticamente en
+longitud, un sesgo de verbosidad no controlado produciría por sí solo una
+divergencia espuria entre modalidades.
+
+\paragraph{Efectos de práctica.} Contrabalanceo por cuadrado latino del orden de
+las tres instancias por participante.
+
+\paragraph{Alcance de las afirmaciones.} La Observación~\ref{obs:estratos} y la
+Tabla~\ref{tab:potencia} acotan de antemano qué se puede concluir: compatibilidad
+relativa sobre $25$ instancias, y equivalencia absoluta sólo sobre $6$ instancias
+con margen $0.6$. Ninguna conclusión se extenderá más allá.
+
+%==============================================================================
+\section{Consideraciones éticas}\label{sec:etica}
+%==============================================================================
+
+Consentimiento informado previo, con descripción del uso de los transcripts.
+Participación desacoplada de toda calificación académica: ni el desempeño ni la
+negativa a participar tienen consecuencia curricular. Seudonimización en el momento
+de la captura, con la tabla de correspondencia almacenada por separado y con
+acceso restringido. Derecho de retiro con borrado efectivo de los episodios
+asociados. Plazo de retención y condiciones de acceso declarados de antemano.
+Sometimiento al comité de ética institucional antes de iniciar el Estudio 2. Se
+informa a los participantes que su interlocutor es un sistema artificial; el
+engaño sobre ese punto no forma parte del diseño.
+
+%==============================================================================
+\section{Instrumentación}\label{sec:implementacion}
+%==============================================================================
+
+El protocolo se instrumenta sobre una plataforma web propia que ya soporta las dos
+modalidades y persiste transcripts completos con rol y orden. La
+Tabla~\ref{tab:brecha} contrasta lo que el diseño exige contra lo disponible.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Constructo} & \textbf{Requiere} & \textbf{Estado} \\
+\midrule
+Transcripts por rol y orden          & tabla de mensajes                     & disponible \\
+Modalidades \modAA{} y \modHA{}      & dos modos de sesión                   & disponible \\
+Partición $d_A/d_B$                  & campos privados por instancia         & disponible \\
+$\ind{\text{correcto}}$ (Req.~\ref{req:correccion}) & $a^\ast$ y verificador simbólico & pendiente \\
+$v(S)$, $IE_t$, $IBC$                & arnés de solver de referencia         & pendiente \\
+$MEE$, $t_{\min}$                    & DAG de solución anotado               & pendiente \\
+$CQI$ (Req.~\ref{req:juez})          & jueces, ceguera, desenmascaramiento   & pendiente \\
+Contrabalanceo de rol                & asignación de $d_A$/$d_B$ al humano   & pendiente \\
+Condiciones experimentales           & aleatorización registrada             & pendiente \\
+$E$ y costos                         & tokens y latencia por turno           & pendiente \\
+Reproducibilidad                     & versionado de instancias y prompts    & pendiente \\
+Análisis                             & exportación en formato tabular        & pendiente \\
+Ética                                & consentimiento y seudonimización      & pendiente \\
+\bottomrule
+\end{tabular}
+\caption{Correspondencia entre constructos del marco y capacidades de la
+plataforma.}
+\label{tab:brecha}
+\end{table}
+
+La fila del contrabalanceo de rol merece una nota: la implementación actual asigna
+siempre $d_A$ al participante humano, lo que hace estructuralmente imposible el
+control descrito en §\ref{sec:estudio2}. Es un ejemplo de cómo una decisión
+razonable en un producto se vuelve un defecto de diseño en un instrumento.
+
+%==============================================================================
+\section{Discusión}
+%==============================================================================
+
+La formulación simétrica tiene una ventaja que la formulación como cribado no
+tenía: ningún resultado es un fracaso. Si las modalidades resultan compatibles en
+sentido relativo, se dispone de un procedimiento barato para ordenar bancos de
+problemas, con el alcance acotado por la Observación~\ref{obs:estratos}. Si
+resultan incompatibles, la descomposición de la Proposición~\ref{prop:descomp}
+indica de qué tipo es la incompatibilidad y, en dos de los tres casos, cómo
+corregirla. Y si el término idiosincrásico domina, se obtiene una medición del
+grado en que el comportamiento colaborativo de un sistema de lenguaje difiere del
+de un estudiante --- expresada en unidades interpretables y sobre dimensiones
+identificadas, no como impresión cualitativa.
+
+Queda fuera del alcance de este diseño una pregunta que lo sucede naturalmente: si
+las instancias que resultan compatibles comparten alguna propiedad estructural
+reconocible a priori sobre el DAG de solución. De existir, permitiría diseñar por
+construcción problemas compatibles en lugar de descubrirlos por medición.
+
+\vspace{1em}
+\noindent\pendiente{secciones a incorporar antes de circular: antecedentes con
+atribuciones (§\ref{sec:antecedentes}), preinscripción del protocolo, y
+disponibilidad de datos y código.}
+
+\end{document}

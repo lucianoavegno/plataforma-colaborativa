@@ -1,0 +1,61 @@
+codigo: al-lagrange-area
+titulo: El área del paralelogramo que nadie ve entero
+area: algebra_lineal
+subtema: Producto escalar y vectorial
+dificultad_declarada: 2
+enunciado_publico: Sean $\vec{u}$ y $\vec{v}$ dos vectores de $\mathbb{R}^3$. Calcular $\|\vec{u}
+  \times \vec{v}\|$, es decir el área del paralelogramo que determinan.
+dato_a: Las normas de los vectores son $\|\vec{u}\| = 3$ y $\|\vec{v}\| = 5$.
+dato_b: El producto escalar entre ambos vectores es $\vec{u} \cdot \vec{v} = 12$.
+respuesta_canonica: '9'
+tipo_respuesta: expresion
+resolucion_latex: |-
+  Usamos la identidad de Lagrange, que vincula exactamente las dos piezas de información:
+
+  $$
+  \|\vec{u}\times\vec{v}\|^2 + (\vec{u}\cdot\vec{v})^2 = \|\vec{u}\|^2\,\|\vec{v}\|^2.
+  $$
+
+  Con el **dato A**, $\|\vec{u}\|^2\|\vec{v}\|^2 = 9 \cdot 25 = 225$.
+  Con el **dato B**, $(\vec{u}\cdot\vec{v})^2 = 144$.
+
+  Entonces
+
+  $$
+  \|\vec{u}\times\vec{v}\|^2 = 225 - 144 = 81 \implies \|\vec{u}\times\vec{v}\| = 9.
+  $$
+
+  **Lectura geométrica:** $\cos\theta = \dfrac{12}{15} = \dfrac{4}{5}$, luego $\sin\theta = \dfrac{3}{5}$ y
+
+  $$
+  \|\vec{u}\times\vec{v}\| = \|\vec{u}\|\,\|\vec{v}\|\sin\theta = 15\cdot\tfrac{3}{5} = 9.
+  $$
+
+  Con las normas solas el ángulo queda libre; con el producto escalar solo, las normas quedan libres.
+estructura_solucion:
+  pasos:
+  - id: p0
+    enunciado: Identidad de Lagrange que vincula ambos productos
+    lado: publico
+  - id: a1
+    enunciado: 'De las normas: el producto de los cuadrados es 225'
+    lado: a
+    depende_de:
+    - p0
+  - id: b1
+    enunciado: 'Del producto escalar: su cuadrado es 144'
+    lado: b
+    depende_de:
+    - p0
+  - id: c1
+    enunciado: Restar para obtener el cuadrado de la norma del producto vectorial
+    lado: conjunto
+    depende_de:
+    - a1
+    - b1
+  - id: c2
+    enunciado: Tomar raíz cuadrada
+    lado: conjunto
+    depende_de:
+    - c1
+  paso_final: c2

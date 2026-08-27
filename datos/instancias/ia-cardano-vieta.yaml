@@ -1,0 +1,75 @@
+codigo: ia-cardano-vieta
+titulo: Reconstruir el polinomio cúbico
+area: intro_algebra
+subtema: Relaciones de Cardano-Vieta
+dificultad_declarada: 3
+enunciado_publico: Sea $p(x) = x^3 + ax^2 + bx + c$ un polinomio con coeficientes reales.
+  Hallar $a$, $b$ y $c$, y factorizar $p$.
+dato_a: La suma de las tres raíces de $p$ es $6$ y la suma de sus cuadrados es $14$.
+dato_b: El número $x = 1$ es raíz de $p$.
+respuesta_canonica: (-6, 11, -6)
+tipo_respuesta: tupla
+resolucion_latex: |-
+  Sean $r_1,r_2,r_3$ las raíces. Por Cardano-Vieta:
+
+  $$
+  e_1 = r_1+r_2+r_3 = -a,\qquad e_2 = \textstyle\sum_{i<j} r_ir_j = b,\qquad e_3 = r_1r_2r_3 = -c.
+  $$
+
+  **Del dato A.** $e_1 = 6$, así que $a = -6$. Además
+
+  $$
+  \sum r_i^2 = e_1^2 - 2e_2 \implies 14 = 36 - 2e_2 \implies e_2 = 11 \implies b = 11.
+  $$
+
+  Hasta acá $p(x) = x^3 - 6x^2 + 11x + c$: falta un dato para fijar $c$.
+
+  **Del dato B.** Como $p(1) = 0$:
+
+  $$
+  1 - 6 + 11 + c = 0 \implies c = -6.
+  $$
+
+  Por lo tanto
+
+  $$
+  p(x) = x^3 - 6x^2 + 11x - 6 = (x-1)(x-2)(x-3),
+  $$
+
+  y las raíces son $1, 2, 3$.
+
+  **Verificación cruzada:** $1+2+3 = 6$ y $1^2+2^2+3^2 = 14$, que es exactamente el dato A.
+
+  El dato A deja una familia de polinomios con $c$ libre; el dato B solo aporta una ecuación entre $a$, $b$ y $c$.
+estructura_solucion:
+  pasos:
+  - id: p0
+    enunciado: Relaciones entre coeficientes y funciones simétricas de las raíces
+    lado: publico
+  - id: a1
+    enunciado: 'De la suma y la suma de cuadrados: primera y segunda simétricas'
+    lado: a
+    depende_de:
+    - p0
+  - id: a2
+    enunciado: Despejar los coeficientes de segundo y primer grado
+    lado: a
+    depende_de:
+    - a1
+  - id: b1
+    enunciado: El valor 1 anula el polinomio
+    lado: b
+    depende_de:
+    - p0
+  - id: c1
+    enunciado: Evaluar en 1 con los coeficientes ya despejados y obtener el término independiente
+    lado: conjunto
+    depende_de:
+    - a2
+    - b1
+  - id: c2
+    enunciado: Factorizar el polinomio resultante
+    lado: conjunto
+    depende_de:
+    - c1
+  paso_final: c2

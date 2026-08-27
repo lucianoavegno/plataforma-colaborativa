@@ -1,0 +1,76 @@
+codigo: cvv-punto-critico
+titulo: Clasificar un punto crítico a cuatro manos
+area: calculo_varias_variables
+subtema: Puntos críticos y hessiano
+dificultad_declarada: 4
+enunciado_publico: Sea $f(x,y) = x^3 + y^3 + \alpha xy + \beta$ con $\alpha,\beta \in \mathbb{R}$.
+  Se sabe que $f$ tiene un punto crítico en $P = (2,2)$. Clasificar $P$ y calcular $f(P)$.
+dato_a: El gradiente de $f$ se anula en $P=(2,2)$.
+dato_b: El valor de la función en el origen es $f(0,0) = 5$.
+respuesta_canonica: '-3'
+tipo_respuesta: expresion
+resolucion_latex: |-
+  **Paso 1 — hallar $\alpha$ (dato A).** El gradiente es
+
+  $$
+  \nabla f(x,y) = \bigl(3x^2 + \alpha y,\; 3y^2 + \alpha x\bigr).
+  $$
+
+  Imponiendo $\nabla f(2,2) = (0,0)$:
+
+  $$
+  3(4) + 2\alpha = 0 \implies \alpha = -6.
+  $$
+
+  Luego $f(x,y) = x^3+y^3-6xy+\beta$.
+
+  **Paso 2 — clasificar $P$.** La matriz hessiana es
+
+  $$
+  H(x,y) = \begin{pmatrix} 6x & -6 \\ -6 & 6y \end{pmatrix}, \qquad H(2,2) = \begin{pmatrix} 12 & -6 \\ -6 & 12\end{pmatrix}.
+  $$
+
+  Su determinante es $D = 144 - 36 = 108 > 0$ y $f_{xx}(2,2) = 12 > 0$, de modo que $P=(2,2)$ es un **mínimo local**.
+
+  La clasificación **no depende de $\beta$**: sumar una constante traslada la superficie sin cambiar su forma.
+
+  **Paso 3 — hallar $\beta$ (dato B).** $f(0,0) = \beta = 5$.
+
+  **Paso 4 — evaluar.**
+
+  $$
+  f(2,2) = 8 + 8 - 6\cdot 4 + 5 = 16 - 24 + 5 = -3.
+  $$
+
+  $$
+  \boxed{P=(2,2)\ \text{es mínimo local y}\ f(P) = -3}
+  $$
+
+  Acá la asimetría es deliberadamente despareja: la parte A puede clasificar el punto sola, pero **no** puede dar el valor $f(P)$; la parte B no puede hacer nada sin $\alpha$. Es un buen caso para discutir qué significa "colaborativo" cuando el aporte no es parejo.
+estructura_solucion:
+  pasos:
+  - id: p0
+    enunciado: Gradiente y hessiano de la superficie en función de los parámetros
+    lado: publico
+  - id: a1
+    enunciado: Anular el gradiente en el punto determina el parámetro del término cruzado
+    lado: a
+    depende_de:
+    - p0
+  - id: a2
+    enunciado: Con ese parámetro, el hessiano clasifica el punto como mínimo local
+    lado: a
+    depende_de:
+    - a1
+  - id: b1
+    enunciado: El valor en el origen fija el término independiente
+    lado: b
+    depende_de:
+    - p0
+  - id: c1
+    enunciado: Evaluar la función en el punto con ambos parámetros
+    lado: conjunto
+    depende_de:
+    - a1
+    - b1
+  paso_final: c1

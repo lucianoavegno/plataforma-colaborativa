@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: Instrumento experimental CPS
+message: >-
+  Si usás este software en un trabajo académico, citalo con estos metadatos.
+type: software
+authors:
+  - given-names: Luciano
+    family-names: Avegno Cepeda
+    email: lucianoavegno@gmail.com
+abstract: >-
+  Instrumento para el estudio de la resolución colaborativa de problemas con
+  partición de información. Mide indicadores de interdependencia epistémica
+  sobre un banco de problemas de matemática universitaria y registra episodios
+  bajo dos modalidades comparables: diálogo entre dos agentes artificiales, y
+  diálogo entre un agente y un estudiante.
+keywords:
+  - collaborative problem solving
+  - information asymmetry
+  - epistemic interdependence
+  - educational research
+  - mathematics education
+license: MIT
+version: 1.0.0
